@@ -5,24 +5,39 @@
 # }
 #
 
+#' List available BCA datasets
+#'
+#' @return a tibble with available datasets
+#' @export
+list_bca_datasets <- function(){
+  dplyr::tibble(Year=seq(2016,2021),revision=seq(16,21),
+         persistent_id=c("hdl:11272.1/AB2/LAPUAB/TU8WL0",
+                         "hdl:11272.1/AB2/LAPUAB/NWBUFO",
+                         "hdl:11272.1/AB2/LAPUAB/ETZ7GQ",
+                         "hdl:11272.1/AB2/LAPUAB/OJRVSH",
+                         "hdl:11272.1/AB2/LAPUAB/IOZJQV",
+                         "hdl:11272.1/AB2/LAPUAB/7ZYI7W"))
+}
+
 #' Get connection to BCA database
 #'
 #' @description
 #' Will download the data if necessary.
-#' @param api_key Abacus API key
 #' @param version database version, requires revision number and persistent ID
+#' @param api_key Abacus API key
 #' @param cache_path cache path for local caching of the database
 #' @param refresh optionally refresh the local database if set to \code{TRUE}
 #' @return A database connection
 #' @export
-get_bca_sqlite_connection <- function(api_key = Sys.getenv("ABACUS_API_TOKEN"),
-                           version = list(revision=21,persistent_id="hdl:11272.1/AB2/LAPUAB/7ZYI7W"),
-                           cache_path = Sys.getenv("ABACUS_CACHE_PATH"),
-                           refresh = FALSE) {
+get_bca_sqlite_connection <- function(version = list(revision=21,persistent_id="hdl:11272.1/AB2/LAPUAB/7ZYI7W"),
+                                      api_key = Sys.getenv("ABACUS_API_TOKEN"),
+                                      cache_path = Sys.getenv("ABACUS_CACHE_PATH"),
+                                      refresh = FALSE) {
   if (nchar(cache_path)==0) stop("Local cache path needs to be provided.")
   path <- file.path(cache_path,paste0("REVD",version$revision,"_and_inventory_extracts.sqlite3"))
   if (refresh || !file.exists(path)) {
     if (nchar(api_key)==0) stop("ABACUS Api Key needs to be provided.")
+    message("Downloading BCA data from ABACUS...")
     tmp<-tempfile()
     httr::GET(url="https://abacus.library.ubc.ca/api/access/datafile/:persistentId/",
               query=list(persistentId=version$persistent_id),
@@ -47,15 +62,15 @@ BCA_TABLES <- c("address", "assessmentAreaKey", "commercialInventory", "folio", 
 #' "address", "assessmentAreaKey", "commercialInventory", "folio", "folioDescription",
 #' "folioDescriptionTax", "jurisdictionKey", "legalDescription" , "metadata",
 #' "residentialInventory", "sales", "valuation", "value"
-#' @param api_key Abacus API key
 #' @param version database version, requires revision number and persistent ID
+#' @param api_key Abacus API key
 #' @param cache_path cache path for local caching of the database
 #' @param refresh optionally refresh the local database if set to \code{TRUE}
 #' @return A database connection to the residential inventory table
 #' @export
 get_bca_data <- function(table,
-                         api_key = Sys.getenv("ABACUS_API_TOKEN"),
                          version = list(revision=21,persistent_id="hdl:11272.1/AB2/LAPUAB/7ZYI7W"),
+                         api_key = Sys.getenv("ABACUS_API_TOKEN"),
                          cache_path = Sys.getenv("ABACUS_CACHE_PATH"),
                          refresh = FALSE) {
   if (!(table %in% BCA_TABLES)) {

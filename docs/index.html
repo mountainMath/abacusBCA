@@ -71,7 +71,7 @@
 <a href="#abacusbca" class="anchor"></a>abacusBCA</h1></div>
 <!-- badges: start -->
 <!-- badges: end -->
-<p>The abacusBCA package facilitates data access and basic processing of BC Assessment data hosted on UBC ABACUS for research purposes.</p>
+<p>The abacusBCA package facilitates data access and basic processing of <a href="https://abacus.library.ubc.ca/dataset.xhtml?persistentId=hdl%3A11272.1%2FAB2%2FLAPUAB">BC Assessment data hosted on UBC ABACUS</a> for research purposes.</p>
 <div id="reference" class="section level2">
 <h2 class="hasAnchor">
 <a href="#reference" class="anchor"></a>Reference</h2>
@@ -84,14 +84,26 @@
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu">remotes</span><span class="fu">::</span><span class="fu"><a href="https://remotes.r-lib.org/reference/install_github.html">install_github</a></span><span class="op">(</span><span class="st">"mountainmath/abacusBCA"</span><span class="op">)</span></code></pre></div>
 </div>
+<div id="access-token-and-cache-path" class="section level2">
+<h2 class="hasAnchor">
+<a href="#access-token-and-cache-path" class="anchor"></a>Access token and cache path</h2>
+<p>Accessing BCA data needs special privileges, the package needs your ABACUS access token in order to download the data. You can pass the access token in your data calls, but the preferred way is to set it in the <code>ABACUS_API_TOKEN</code> environment variable in your <code>~/.Renviron</code>.</p>
+<p>The package also requires the user to set a local path where to store the BCA data. This can be passed in the data calls, but the preferred way is to set it in your <code>ABACUS_CACHE_PATH</code> environment variable in your <code>~/.Renviron</code>.</p>
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">ABACUS_API_TOKEN</span><span class="op">=</span><span class="st">'&lt;your abacus api token&gt;'</span>
+<span class="va">ABACUS_CACHE_PATH</span><span class="op">=</span><span class="st">"&lt;path on your computer where to store BCA database&gt;"</span></code></pre></div>
+</div>
 <div id="example" class="section level2">
 <h2 class="hasAnchor">
 <a href="#example" class="anchor"></a>Example</h2>
 <p>For example, to access the sales data from the 2021 data dump:</p>
-<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/mountainMath/abacusBCA">abacusBCA</a></span><span class="op">)</span>
+<span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://dplyr.tidyverse.org">dplyr</a></span><span class="op">)</span>
 
-<span class="va">sales_data</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/get_bca_data.html">get_bca_data</a></span><span class="op">(</span><span class="st">"sales"</span><span class="op">)</span></code></pre></div>
+<span class="va">sales_data_2021</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/list_bca_datasets.html">list_bca_datasets</a></span><span class="op">(</span><span class="op">)</span> <span class="op">%&gt;%</span>
+  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html">filter</a></span><span class="op">(</span><span class="va">Year</span><span class="op">==</span><span class="fl">2021</span><span class="op">)</span> <span class="op">%&gt;%</span>
+  <span class="fu"><a href="reference/get_bca_data.html">get_bca_data</a></span><span class="op">(</span><span class="st">"sales"</span>,version<span class="op">=</span><span class="va">.</span><span class="op">)</span></code></pre></div>
 </div>
 </div>
   </div>

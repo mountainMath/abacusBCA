@@ -5,16 +5,16 @@
 \title{Get connection to BCA database}
 \usage{
 get_bca_sqlite_connection(
-  api_key = Sys.getenv("ABACUS_API_TOKEN"),
   version = list(revision = 21, persistent_id = "hdl:11272.1/AB2/LAPUAB/7ZYI7W"),
+  api_key = Sys.getenv("ABACUS_API_TOKEN"),
   cache_path = Sys.getenv("ABACUS_CACHE_PATH"),
   refresh = FALSE
 )
 }
 \arguments{
-\item{api_key}{Abacus API key}
-
 \item{version}{database version, requires revision number and persistent ID}
+
+\item{api_key}{Abacus API key}
 
 \item{cache_path}{cache path for local caching of the database}
 

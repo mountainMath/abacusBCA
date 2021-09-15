@@ -6,8 +6,10 @@
 <!-- badges: start -->
 <!-- badges: end -->
 
-The abacusBCA package facilitates data access and basic processing of BC
-Assessment data hosted on UBC ABACUS for research purposes.
+The abacusBCA package facilitates data access and basic processing of
+[BC Assessment data hosted on UBC
+ABACUS](https://abacus.library.ubc.ca/dataset.xhtml?persistentId=hdl%3A11272.1%2FAB2%2FLAPUAB)
+for research purposes.
 
 ## Reference
 
@@ -46,6 +48,9 @@ For example, to access the sales data from the 2021 data dump:
 
 ``` r
 library(abacusBCA)
+library(dplyr)
 
-sales_data <- get_bca_data("sales")
+sales_data_2021 <- list_bca_datasets() %>%
+  filter(Year==2021) %>%
+  get_bca_data("sales",version=.)
 ```
