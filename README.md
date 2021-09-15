@@ -9,6 +9,11 @@
 The abacusBCA package facilitates data access and basic processing of BC
 Assessment data hosted on UBC ABACUS for research purposes.
 
+## Reference
+
+[abacusBCA home page and reference
+guide](https://mountainmath.github.io/abacusBCA/index.html)
+
 ## Installation
 
 You can install the latest version of abacusBCA from
