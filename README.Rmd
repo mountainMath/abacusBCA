@@ -32,6 +32,16 @@ You can install the latest version of abacusBCA from [GitHub](https://CRAN.R-pro
 remotes::install_github("mountainmath/abacusBCA")
 ```
 
+## Access token and cache path
+Accessing BCA data needs special privileges, the package needs your ABACUS access token in order to download the data. You can pass the access token in your data calls, but the preferred way is to set it in the `ABACUS_API_TOKEN` environment variable in your `~/.Renviron`.
+
+The package also requires the user to set a local path where to store the BCA data. This can be passed in the data calls, but the preferred way is to set it in your `ABACUS_CACHE_PATH` environment variable in your `~/.Renviron`.
+
+``` r
+ABACUS_API_TOKEN='<your abacus api token>'
+ABACUS_CACHE_PATH="<path on your computer where to store BCA database>"
+```
+
 ## Example
 
 For example, to access the sales data from the 2021 data dump:
