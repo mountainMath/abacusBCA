@@ -1,7 +1,7 @@
 Package: abacusBCA
 Type: Package
 Title: Access and process BCA data via UBC ABACUS
-Version: 0.1.0
+Version: 0.1.1
 Authors@R: c(
     person("Jens", "von Bergmann", email = "jens@mountainmath.ca", role = c("cre"))
     )
@@ -10,13 +10,12 @@ Description: Convenience functions to access the data and common data cleaning a
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
-RoxygenNote: 7.1.1
+RoxygenNote: 7.2.0
 Depends: R (>= 4.0)
 Imports: 
     dplyr (>= 1.0),
     DBI,
     httr,
-    utils,
     RSQLite,
     zip
 Suggests: 

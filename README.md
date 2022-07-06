@@ -44,13 +44,13 @@ ABACUS_CACHE_PATH="<path on your computer where to store BCA database>"
 
 ## Example
 
-For example, to access the sales data from the 2021 data dump:
+For example, to access the sales data from the 2022 data dump:
 
 ``` r
 library(abacusBCA)
 library(dplyr)
 
 sales_data_2021 <- list_bca_datasets() %>%
-  filter(Year==2021) %>%
+  filter(Year==2022) %>%
   get_bca_data("sales",version=.)
 ```

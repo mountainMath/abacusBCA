@@ -5,7 +5,7 @@
 \title{Get connection to BCA database}
 \usage{
 get_bca_sqlite_connection(
-  version = list(revision = 21, persistent_id = "hdl:11272.1/AB2/LAPUAB/7ZYI7W"),
+  version = list(revision = 22, persistent_id = "hdl:11272.1/AB2/LAPUAB/HHU1YP"),
   api_key = Sys.getenv("ABACUS_API_TOKEN"),
   cache_path = Sys.getenv("ABACUS_CACHE_PATH"),
   refresh = FALSE
