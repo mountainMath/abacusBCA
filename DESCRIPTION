@@ -11,7 +11,7 @@ License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
 RoxygenNote: 7.3.1
-Depends: R (>= 4.0)
+Depends: R (>= 4.1)
 Imports: 
     dplyr (>= 1.0),
     DBI,
@@ -19,8 +19,12 @@ Imports:
     RSQLite,
     zip,
     sf,
+    purrr,
+    readr,
+    rvest,
+    stringr,
     utils,
-    dplyr
+    rlang
 Suggests: 
     rmarkdown,
     knitr

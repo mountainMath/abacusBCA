@@ -49,21 +49,21 @@ list_bca_datasets <- function(){
   revd<-bind_rows(datasets,datasets2,datasets3,datasets4) |>
     filter(grepl("bca_folios_spatial_file|Residential_inventory|Commercial_Inventory|Non-Residential|REVD\\d+_\\d+\\.zip",.data$name)) |>
     mutate(updated_at=stringr::str_extract(.data$name,"\\d{8}") |> as.Date(format="%Y%m%d")) |>
-    mutate(updated_at=coalesce(updated_at,stringr::str_extract(.data$name,"\\d{6}") |> paste0("01") |> as.Date(format="%Y%m%d"))) |>
+    mutate(updated_at=coalesce(.data$updated_at,stringr::str_extract(.data$name,"\\d{6}") |> paste0("01") |> as.Date(format="%Y%m%d"))) |>
     mutate(series=case_when(grepl("spatial",.data$name)~"spatial",
                             grepl("data_advice",.data$name)~"data_advice",
                             grepl("Residential_inventory",.data$name)~"residential_inventory",
                             grepl("Commercial_Inventory|Non-Residential",.data$name)~"commercial_inventory",
                             TRUE~"original")) |>
     mutate(revision=stringr::str_match(.data$name,"REVD(\\d{2})")[,2]) |>
-    mutate(revision=coalesce(revision,stringr::str_match(.data$name,"bca_folios_spatial_file_\\d{2}(\\d{2})")[,2])) |>
-    mutate(revision=coalesce(revision,stringr::str_match(.data$name,"Residential_inventory_\\d{2}(\\d{2})")[,2])) |>
-    mutate(revision=coalesce(revision,stringr::str_match(.data$name,"^\\d{2}(\\d{2})\\d{4}\\_.*")[,2])) |>
+    mutate(revision=coalesce(.data$revision,stringr::str_match(.data$name,"bca_folios_spatial_file_\\d{2}(\\d{2})")[,2])) |>
+    mutate(revision=coalesce(.data$revision,stringr::str_match(.data$name,"Residential_inventory_\\d{2}(\\d{2})")[,2])) |>
+    mutate(revision=coalesce(.data$revision,stringr::str_match(.data$name,"^\\d{2}(\\d{2})\\d{4}\\_.*")[,2])) |>
     mutate(Year=paste0("20",substr(.data$revision,1,2))) |>
-    select(.data$Year,revision,persistent_id=id,updated_at,series) |>
-    mutate(n=n(),.by=c(revision,series)) |>
-    mutate(revision=ifelse(n==1,revision,paste0(revision,"-",strftime(updated_at,"%m")))) |>
-    select(-n) |>
+    select(.data$Year,.data$revision,persistent_id=.data$id,.data$updated_at,.data$series) |>
+    mutate(n=n(),.by=c("revision","series")) |>
+    mutate(revision=ifelse(.data$n==1,.data$revision,paste0(.data$revision,"-",strftime(.data$updated_at,"%m")))) |>
+    select(-.data$n) |>
     arrange(.data$revision)
 
   revd
@@ -110,7 +110,7 @@ get_bca_sqlite_connection <- function(version = list(revision=22,persistent_id="
     tmp<-tempfile(fileext=".zip")
     if (is.null(version$persistent_id)) {
       dataset <- list_bca_datasets() |>
-        filter(revision==version$revision)
+        filter(.data$revision==version$revision)
       if (nrow(dataset)==1) {
         version$persistent_id=dataset$persistent_id
       } else {
@@ -211,8 +211,8 @@ get_bca_inventory <- function(version = list(revision="24",series=c("residential
 
   for (s in version$series) {
     dataset <- list_bca_datasets() |>
-      filter(revision==version$revision,
-             series==s)
+      filter(.data$revision==version$revision,
+             .data$series==s)
     stopifnot(nrow(dataset)==1)
     path <- file.path(cache_path,paste0(s,"_",version$revision))
     if (!dir.exists(path)|refresh|length(dir(path,pattern=s,ignore.case = TRUE))==0) {
@@ -226,18 +226,18 @@ get_bca_inventory <- function(version = list(revision="24",series=c("residential
         if (!dir.exists(path)) dir.create(path)
         file.copy(tmp,file.path(path,paste0(strftime(dataset$updated_at,"%Y%m%d"),"_commercial_inventory_extract.txt")))
       } else {
-        unzip(tmp,exdir=path)
+        zip::unzip(tmp,exdir=path)
       }
       unlink(tmp)
       files <- dir(path,pattern=s,full.names=TRUE,ignore.case = TRUE)
-      if (!is.null(assessment_areas) && series=="residential_inventory") {
+      if (!is.null(assessment_areas) && s=="residential_inventory") {
         files <- files[grepl(paste0(paste0("_AA",assessment_areas,"_"),collapse="|"),files)]
       }
       dd<-readr::read_csv(files,col_types=readr::cols(.default="c"))
 
-      if (!is.null(assessment_areas) && series=="commercial_inventory") {
+      if (!is.null(assessment_areas) && s=="commercial_inventory") {
         d <- d |>
-          filter(Area %in% assessment_areas)
+          filter(.data$Area %in% assessment_areas)
       }
       d <- bind_rows(d,dd)
     }

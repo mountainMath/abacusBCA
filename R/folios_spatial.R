@@ -18,7 +18,7 @@ get_bca_spatial_gpkg <- function(
   if (nchar(cache_path)==0) stop("Local cache path needs to be provided.")
   if (is.null(version$persistent_id)) {
     dataset <- list_bca_datasets() |>
-      filter(revision==version$revision,series=="spatial")
+      filter(.data$revision==version$revision,.data$series=="spatial")
     if (nrow(dataset)==1) {
       version$persistent_id=dataset$persistent_id
     } else {
