@@ -98,7 +98,7 @@ get_bca_sqlite_connection <- function(version = list(revision=22,persistent_id="
                                       cache_path = Sys.getenv("ABACUS_CACHE_PATH"),
                                       refresh = FALSE) {
   if (nchar(cache_path)==0) stop("Local cache path needs to be provided.")
-  if (as.integer(version$revision)<=22) {
+  if (as.integer(substr(version$revision,1,2))<=22) {
     path <- file.path(cache_path,paste0("REVD",version$revision,"_and_inventory_extracts.sqlite3"))
   } else {
     path <- dir(cache_path,full.names = TRUE,pattern=paste0("_REVD",version$revision,"\\.csv$")) |>
@@ -107,23 +107,25 @@ get_bca_sqlite_connection <- function(version = list(revision=22,persistent_id="
   if (refresh || !file.exists(path)) {
     if (nchar(api_key)==0) stop("ABACUS Api Key needs to be provided.")
     message("Downloading BCA data from ABACUS...")
-    tmp<-tempfile(fileext=".zip")
     if (is.null(version$persistent_id)) {
       dataset <- list_bca_datasets() |>
         filter(.data$revision==version$revision)
-      if (nrow(dataset)==1) {
-        version$persistent_id=dataset$persistent_id
+      if (nrow(dataset)>1) {
+        for (i in 1:nrow(dataset)) {
+          tmp<-tempfile(fileext=".zip")
+          version$persistent_id=dataset$persistent_id[i]
+          download_bca_data(version$persistent_id,api_key,tmp)
+          #zip::zip_list(tmp)
+          fs<-zip::unzip(tmp,exdir=cache_path)
+          unlink(tmp)
+        }
       } else {
         stop("No dataset found for revision ",version$revision)
       }
     }
-    download_bca_data(version$persistent_id,api_key,tmp)
-    #zip::zip_list(tmp)
-    fs<-zip::unzip(tmp,exdir=cache_path)
-    unlink(tmp)
   }
   con <- NULL
-  if (as.integer(version$revision)<=22) {
+  if (as.integer(substr(version$revision,1,2))<=22) {
     con<-DBI::dbConnect(RSQLite::SQLite(), path)
   }
   con
@@ -163,6 +165,15 @@ get_bca_data <- function(table,
     version <- list(revision=as.character(version))
   }
 
+  if (as.integer(substr(version$revision,1,2))>22 && table %in%c("residentialInventory","commercialInventory")) {
+    version$series <- table
+    d<-get_bca_inventory(version=version,
+                         api_key=api_key,cache_path=cache_path,
+                         assessment_areas=assessment_areas,refresh=refresh)
+    return(d)
+  }
+
+
   con <- get_bca_sqlite_connection(api_key=api_key,version=version,cache_path=cache_path,refresh=refresh)
   if (is.null(con)) {
     if (table %in% c("residentialInventory","commercialInventory")) {
@@ -170,7 +181,7 @@ get_bca_data <- function(table,
         series <- ifelse(table=="residentialInventory","residential_inventory","commercial_inventory")
         version$series=series
       }
-      get_bca_inventory(version=version,api_key=api_key,cache_path=cache_path,
+      d <- get_bca_inventory(version=version,api_key=api_key,cache_path=cache_path,
                         assessment_areas=assessment_areas,refresh=refresh)
     } else {
       files <- dir(cache_path,full.names=TRUE,pattern = paste0("REVD",version$revision,"\\.csv$"))
@@ -200,16 +211,24 @@ get_bca_data <- function(table,
 #' @param refresh optionally refresh the local database if set to \code{TRUE}
 #' @return A database connection to the residential inventory table
 #' @export
-get_bca_inventory <- function(version = list(revision="24",series=c("residential_inventory","commercial_inventory")),
-                                  api_key = Sys.getenv("ABACUS_API_TOKEN"),
-                                  cache_path = Sys.getenv("ABACUS_CACHE_PATH"),
+get_bca_inventory <- function(version = list(revision="24",
+                                             series=c("residential_inventory","commercial_inventory")),
+                              api_key = Sys.getenv("ABACUS_API_TOKEN"),
+                              cache_path = Sys.getenv("ABACUS_CACHE_PATH"),
                               assessment_areas = NULL,
-                                  refresh = FALSE) {
+                              refresh = FALSE) {
 
   d <- NULL
 
 
   for (s in version$series) {
+    if (s=="residentialInventory") {
+      s <- "residential_inventory"
+    } else if (s=="commercialInventory") {
+      s <- "commercial_inventory"
+    } else {
+      stop("Series needs to be one of 'residential_inventory' or 'commercial_inventory'")
+    }
     dataset <- list_bca_datasets() |>
       filter(.data$revision==version$revision,
              .data$series==s)
@@ -226,21 +245,28 @@ get_bca_inventory <- function(version = list(revision="24",series=c("residential
         if (!dir.exists(path)) dir.create(path)
         file.copy(tmp,file.path(path,paste0(strftime(dataset$updated_at,"%Y%m%d"),"_commercial_inventory_extract.txt")))
       } else {
-        zip::unzip(tmp,exdir=path)
+        fs<-utils::unzip(tmp,exdir=path)
+        pp <- dir(path)
+        if (length(pp)==1) { # in some cases this ends up in a subdirectory
+          cp_result <- file.copy(fs,path)
+          unlink(pp,recursive = TRUE)
+        }
       }
       unlink(tmp)
-      files <- dir(path,pattern=s,full.names=TRUE,ignore.case = TRUE)
-      if (!is.null(assessment_areas) && s=="residential_inventory") {
-        files <- files[grepl(paste0(paste0("_AA",assessment_areas,"_"),collapse="|"),files)]
-      }
-      dd<-readr::read_csv(files,col_types=readr::cols(.default="c"))
-
-      if (!is.null(assessment_areas) && s=="commercial_inventory") {
-        d <- d |>
-          filter(.data$Area %in% assessment_areas)
-      }
-      d <- bind_rows(d,dd)
     }
+    files <- dir(path,pattern=s,full.names=TRUE,ignore.case = TRUE)
+    if (!is.null(assessment_areas) && s=="residential_inventory") {
+      files <- files[grepl(paste0(c(paste0("_AA",assessment_areas,"_"),
+                                    paste0("_A",assessment_areas,"_")),
+                                  collapse="|"),files)]
+    }
+    dd<-readr::read_csv(files,col_types=readr::cols(.default="c"))
+
+    if (!is.null(assessment_areas) && s=="commercial_inventory") {
+      dd <- dd |>
+        filter(.data$Area %in% assessment_areas)
+    }
+    d <- bind_rows(d,dd)
   }
 
   d
