@@ -247,7 +247,7 @@ get_bca_inventory <- function(version = list(revision="24",
       } else {
         fs<-utils::unzip(tmp,exdir=path)
         pp <- dir(path)
-        if (length(pp)==1) { # in some cases this ends up in a subdirectory
+        if (length(pp)==1 && dir.exists(pp)) { # in some cases this ends up in a subdirectory
           cp_result <- file.copy(fs,path)
           unlink(pp,recursive = TRUE)
         }
