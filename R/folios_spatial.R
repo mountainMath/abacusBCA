@@ -58,6 +58,7 @@ get_bca_spatial_gpkg <- function(
 #' @param version database version, requires revision number and persistent ID
 #' @param api_key Abacus API key
 #' @param cache_path cache path for local caching of the database
+#' @param quiet quiet output
 #' @param refresh optionally refresh the local database if set to \code{TRUE}
 #' @return A database connection to the residential inventory table
 #' @export
@@ -65,6 +66,7 @@ get_bca_spatial_folios <- function(query = "select * from \"WHSE_HUMAN_CULTURAL_
                                    version = list(revision="24"),
                                    api_key = Sys.getenv("ABACUS_API_TOKEN"),
                                    cache_path = Sys.getenv("ABACUS_CACHE_PATH"),
+                                   quiet = TRUE,
                                    refresh = FALSE) {
 
   file_path <- get_bca_spatial_gpkg(version = version,
@@ -72,7 +74,7 @@ get_bca_spatial_folios <- function(query = "select * from \"WHSE_HUMAN_CULTURAL_
                                     cache_path = cache_path,
                                     refresh = refresh)
   d<-sf::st_read(file_path,
-                 query=query)
+                 query=query, quiet=quiet)
   d
 }
 

@@ -10,6 +10,7 @@ get_bca_spatial_folios(
   version = list(revision = "24"),
   api_key = Sys.getenv("ABACUS_API_TOKEN"),
   cache_path = Sys.getenv("ABACUS_CACHE_PATH"),
+  quiet = TRUE,
   refresh = FALSE
 )
 }
@@ -27,6 +28,8 @@ get_bca_spatial_folios(
 \item{api_key}{Abacus API key}
 
 \item{cache_path}{cache path for local caching of the database}
+
+\item{quiet}{quiet output}
 
 \item{refresh}{optionally refresh the local database if set to \code{TRUE}}
 }
