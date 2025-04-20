@@ -229,12 +229,12 @@ get_bca_inventory <- function(version = list(revision="24",
     } else {
       stop("Series needs to be one of 'residential_inventory' or 'commercial_inventory'")
     }
-    dataset <- list_bca_datasets() |>
-      filter(.data$revision==version$revision,
-             .data$series==s)
-    stopifnot(nrow(dataset)==1)
     path <- file.path(cache_path,paste0(s,"_",version$revision))
     if (!dir.exists(path)|refresh|length(dir(path,pattern=s,ignore.case = TRUE))==0) {
+      dataset <- list_bca_datasets() |>
+        filter(.data$revision==version$revision,
+               .data$series==s)
+      stopifnot(nrow(dataset)==1)
       if (dir.exists(path)) {
         files <- dir(path,pattern=s,full.names=TRUE,ignore.case = TRUE)
         unlink(files)

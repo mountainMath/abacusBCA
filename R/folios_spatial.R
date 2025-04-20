@@ -16,19 +16,20 @@ get_bca_spatial_gpkg <- function(
                          cache_path = Sys.getenv("ABACUS_CACHE_PATH"),
                          refresh = FALSE) {
   if (nchar(cache_path)==0) stop("Local cache path needs to be provided.")
-  if (is.null(version$persistent_id)) {
-    dataset <- list_bca_datasets() |>
-      filter(.data$revision==version$revision,.data$series=="spatial")
-    if (nrow(dataset)==1) {
-      version$persistent_id=dataset$persistent_id
-    } else {
-      stop("No dataset found for revision ",version$revision)
-    }
-  }
   rev <- paste0(20,gsub("-","",version$revision))
   grep_path <- paste0("bca_folios_spatial_file_",rev)
   paths <- dir(cache_path,pattern=grep_path,full.names=TRUE)
   if (refresh || length(paths)==0) {
+    if (is.null(version$persistent_id)) {
+      dataset <- list_bca_datasets() |>
+        filter(.data$revision==version$revision,.data$series=="spatial")
+      if (nrow(dataset)==1) {
+        version$persistent_id=dataset$persistent_id
+      } else {
+        stop("No dataset found for revision ",version$revision)
+      }
+    }
+
     tmp=tempfile()
     r<-httr::GET(url="https://abacus.library.ubc.ca/api/access/datafile/:persistentId/",
                  query=list(persistentId=version$persistent_id),
